@@ -39,64 +39,94 @@ class YoloNet(Net):
       predicts: 4-D tensor [batch_size, cell_size, cell_size, num_classes + 5 * boxes_per_cell]
     """
     conv_num = 1
-    temp_conv = self.conv2d('conv' + str(conv_num), images, [7, 7, 3, 64], stride=2)
+    temp_conv = self.conv2d(f'conv{conv_num}', images, [7, 7, 3, 64], stride=2)
     conv_num += 1
 
 
     temp_pool = self.max_pool(temp_conv, [2, 2], 2)
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_pool, [3, 3, 64, 192], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_pool, [3, 3, 64, 192],
+                            stride=1)
     conv_num += 1
 
     temp_pool = self.max_pool(temp_conv, [2, 2], 2)
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_pool, [1, 1, 192, 128], stride=1)
-    conv_num += 1
-    
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 128, 256], stride=1)
-    conv_num += 1
-
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [1, 1, 256, 256], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_pool, [1, 1, 192, 128],
+                            stride=1)
     conv_num += 1
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 256, 512], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 128, 256],
+                            stride=1)
     conv_num += 1
 
-    temp_conv = self.max_pool(temp_conv, [2, 2], 2)
-
-    for i in range(4):
-      temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [1, 1, 512, 256], stride=1)
-      conv_num += 1
-
-      temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 256, 512], stride=1)
-      conv_num += 1
-
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [1, 1, 512, 512], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [1, 1, 256, 256],
+                            stride=1)
     conv_num += 1
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 512, 1024], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 256, 512],
+                            stride=1)
     conv_num += 1
 
     temp_conv = self.max_pool(temp_conv, [2, 2], 2)
 
-    for i in range(2):
-      temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [1, 1, 1024, 512], stride=1)
+    for _ in range(4):
+      temp_conv = self.conv2d(f'conv{str(conv_num)}',
+                              temp_conv, [1, 1, 512, 256],
+                              stride=1)
       conv_num += 1
 
-      temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 512, 1024], stride=1)
+      temp_conv = self.conv2d(f'conv{conv_num}',
+                              temp_conv, [3, 3, 256, 512],
+                              stride=1)
       conv_num += 1
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 1024, 1024], stride=1)
+    temp_conv = self.conv2d(f'conv{str(conv_num)}',
+                            temp_conv, [1, 1, 512, 512],
+                            stride=1)
     conv_num += 1
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 1024, 1024], stride=2)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 512, 1024],
+                            stride=1)
+    conv_num += 1
+
+    temp_conv = self.max_pool(temp_conv, [2, 2], 2)
+
+    for _ in range(2):
+      temp_conv = self.conv2d(f'conv{str(conv_num)}',
+                              temp_conv, [1, 1, 1024, 512],
+                              stride=1)
+      conv_num += 1
+
+      temp_conv = self.conv2d(f'conv{conv_num}',
+                              temp_conv, [3, 3, 512, 1024],
+                              stride=1)
+      conv_num += 1
+
+    temp_conv = self.conv2d(f'conv{str(conv_num)}',
+                            temp_conv, [3, 3, 1024, 1024],
+                            stride=1)
+    conv_num += 1
+
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 1024, 1024],
+                            stride=2)
     conv_num += 1
 
     #
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 1024, 1024], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 1024, 1024],
+                            stride=1)
     conv_num += 1
-    
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 1024, 1024], stride=1)
+
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 1024, 1024],
+                            stride=1)
     conv_num += 1
 
 
@@ -110,10 +140,7 @@ class YoloNet(Net):
 
     local2 = tf.reshape(local2, [tf.shape(local2)[0], self.cell_size, self.cell_size, self.num_classes + 5 * self.boxes_per_cell])
 
-    predicts = local2
-
-
-    return predicts
+    return local2
 
   def iou(self, boxes1, boxes2):
     """calculate ious
@@ -130,7 +157,7 @@ class YoloNet(Net):
                       boxes2[0] + boxes2[2] / 2, boxes2[1] + boxes2[3] / 2])
 
     #calculate the left up point
-    lu = tf.maximum(boxes1[:, :, :, 0:2], boxes2[0:2])
+    lu = tf.maximum(boxes1[:, :, :, 0:2], boxes2[:2])
     rd = tf.minimum(boxes1[:, :, :, 2:], boxes2[2:])
 
     #intersection
@@ -139,13 +166,13 @@ class YoloNet(Net):
     inter_square = intersection[:, :, :, 0] * intersection[:, :, :, 1]
 
     mask = tf.cast(intersection[:, :, :, 0] > 0, tf.float32) * tf.cast(intersection[:, :, :, 1] > 0, tf.float32)
-    
+
     inter_square = mask * inter_square
-    
+
     #calculate the boxs1 square and boxs2 square
     square1 = (boxes1[:, :, :, 2] - boxes1[:, :, :, 0]) * (boxes1[:, :, :, 3] - boxes1[:, :, :, 1])
     square2 = (boxes2[2] - boxes2[0]) * (boxes2[3] - boxes2[1])
-    
+
     return inter_square/(square1 + square2 - inter_square + 1e-6)
 
   def cond1(self, num, object_num, loss, predict, label, nilboy):
@@ -202,7 +229,7 @@ class YoloNet(Net):
 
     #calculate iou_predict_truth [CELL_SIZE, CELL_SIZE, BOXES_PER_CELL]
     predict_boxes = predict[:, :, self.num_classes + self.boxes_per_cell:]
-    
+
 
     predict_boxes = tf.reshape(predict_boxes, [self.cell_size, self.cell_size, self.boxes_per_cell, 4])
 
@@ -218,13 +245,13 @@ class YoloNet(Net):
 
     predict_boxes = base_boxes + predict_boxes
 
-    iou_predict_truth = self.iou(predict_boxes, label[0:4])
+    iou_predict_truth = self.iou(predict_boxes, label[:4])
     #calculate C [cell_size, cell_size, boxes_per_cell]
     C = iou_predict_truth * tf.reshape(response, [self.cell_size, self.cell_size, 1])
 
     #calculate I tensor [CELL_SIZE, CELL_SIZE, BOXES_PER_CELL]
     I = iou_predict_truth * tf.reshape(response, (self.cell_size, self.cell_size, 1))
-    
+
     max_I = tf.reduce_max(I, 2, keep_dims=True)
 
     I = tf.cast((I >= max_I), tf.float32) * tf.reshape(response, (self.cell_size, self.cell_size, 1))

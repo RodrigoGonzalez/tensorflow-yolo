@@ -51,13 +51,13 @@ class TextDataSet(DataSet):
     self.record_point = 0
     self.record_number = len(self.record_list)
 
-    self.num_batch_per_epoch = int(self.record_number / self.batch_size)
+    self.num_batch_per_epoch = self.record_number // self.batch_size
 
     t_record_producer = Thread(target=self.record_producer)
-    t_record_producer.daemon = True 
+    t_record_producer.daemon = True
     t_record_producer.start()
 
-    for i in range(self.thread_num):
+    for _ in range(self.thread_num):
       t = Thread(target=self.record_customer)
       t.daemon = True
       t.start() 
@@ -131,7 +131,7 @@ class TextDataSet(DataSet):
     images = []
     labels = []
     objects_num = []
-    for i in range(self.batch_size):
+    for _ in range(self.batch_size):
       image, label, object_num = self.image_label_queue.get()
       images.append(image)
       labels.append(label)
