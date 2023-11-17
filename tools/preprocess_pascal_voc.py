@@ -56,27 +56,24 @@ def convert_to_string(image_path, labels):
   out_string += image_path
   for label in labels:
     for i in label:
-      out_string += ' ' + str(i)
+      out_string += f' {str(i)}'
   out_string += '\n'
   return out_string
 
 def main():
-  out_file = open(OUTPUT_PATH, 'w')
+  with open(OUTPUT_PATH, 'w') as out_file:
+    xml_dir = f'{DATA_PATH}/VOC2007/Annotations/'
 
-  xml_dir = DATA_PATH + '/VOC2007/Annotations/'
+    xml_list = os.listdir(xml_dir)
+    xml_list = [xml_dir + temp for temp in xml_list]
 
-  xml_list = os.listdir(xml_dir)
-  xml_list = [xml_dir + temp for temp in xml_list]
-
-  for xml in xml_list:
-    try:
-      image_path, labels = parse_xml(xml)
-      record = convert_to_string(image_path, labels)
-      out_file.write(record)
-    except Exception:
-      pass
-
-  out_file.close()
+    for xml in xml_list:
+      try:
+        image_path, labels = parse_xml(xml)
+        record = convert_to_string(image_path, labels)
+        out_file.write(record)
+      except Exception:
+        pass
 
 if __name__ == '__main__':
   main()

@@ -40,43 +40,55 @@ class YoloTinyNet(Net):
     """
     conv_num = 1
 
-    temp_conv = self.conv2d('conv' + str(conv_num), images, [3, 3, 3, 16], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}', images, [3, 3, 3, 16], stride=1)
     conv_num += 1
 
     temp_pool = self.max_pool(temp_conv, [2, 2], 2)
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_pool, [3, 3, 16, 32], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}', temp_pool, [3, 3, 16, 32], stride=1)
     conv_num += 1
 
     temp_pool = self.max_pool(temp_conv, [2, 2], 2)
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_pool, [3, 3, 32, 64], stride=1)
-    conv_num += 1
-    
-    temp_conv = self.max_pool(temp_conv, [2, 2], 2)
-
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 64, 128], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}', temp_pool, [3, 3, 32, 64], stride=1)
     conv_num += 1
 
     temp_conv = self.max_pool(temp_conv, [2, 2], 2)
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 128, 256], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 64, 128],
+                            stride=1)
     conv_num += 1
 
     temp_conv = self.max_pool(temp_conv, [2, 2], 2)
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 256, 512], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 128, 256],
+                            stride=1)
     conv_num += 1
 
     temp_conv = self.max_pool(temp_conv, [2, 2], 2)
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 512, 1024], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 256, 512],
+                            stride=1)
+    conv_num += 1
+
+    temp_conv = self.max_pool(temp_conv, [2, 2], 2)
+
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 512, 1024],
+                            stride=1)
     conv_num += 1     
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 1024, 1024], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 1024, 1024],
+                            stride=1)
     conv_num += 1 
 
-    temp_conv = self.conv2d('conv' + str(conv_num), temp_conv, [3, 3, 1024, 1024], stride=1)
+    temp_conv = self.conv2d(f'conv{conv_num}',
+                            temp_conv, [3, 3, 1024, 1024],
+                            stride=1)
     conv_num += 1 
 
     temp_conv = tf.transpose(temp_conv, (0, 3, 1, 2))
@@ -85,7 +97,7 @@ class YoloTinyNet(Net):
     local1 = self.local('local1', temp_conv, self.cell_size * self.cell_size * 1024, 256)
 
     local2 = self.local('local2', local1, 256, 4096)
- 
+
     local3 = self.local('local3', local2, 4096, self.cell_size * self.cell_size * (self.num_classes + self.boxes_per_cell * 5), leaky=False, pretrain=False, train=True)
 
     n1 = self.cell_size * self.cell_size * self.num_classes
@@ -98,9 +110,7 @@ class YoloTinyNet(Net):
 
     local3 = tf.concat([class_probs, scales, boxes], 3)
 
-    predicts = local3
-
-    return predicts
+    return local3
 
   def iou(self, boxes1, boxes2):
     """calculate ious
@@ -117,7 +127,7 @@ class YoloTinyNet(Net):
                       boxes2[0] + boxes2[2] / 2, boxes2[1] + boxes2[3] / 2])
 
     #calculate the left up point
-    lu = tf.maximum(boxes1[:, :, :, 0:2], boxes2[0:2])
+    lu = tf.maximum(boxes1[:, :, :, 0:2], boxes2[:2])
     rd = tf.minimum(boxes1[:, :, :, 2:], boxes2[2:])
 
     #intersection
@@ -126,13 +136,13 @@ class YoloTinyNet(Net):
     inter_square = intersection[:, :, :, 0] * intersection[:, :, :, 1]
 
     mask = tf.cast(intersection[:, :, :, 0] > 0, tf.float32) * tf.cast(intersection[:, :, :, 1] > 0, tf.float32)
-    
+
     inter_square = mask * inter_square
-    
+
     #calculate the boxs1 square and boxs2 square
     square1 = (boxes1[:, :, :, 2] - boxes1[:, :, :, 0]) * (boxes1[:, :, :, 3] - boxes1[:, :, :, 1])
     square2 = (boxes2[2] - boxes2[0]) * (boxes2[3] - boxes2[1])
-    
+
     return inter_square/(square1 + square2 - inter_square + 1e-6)
 
   def cond1(self, num, object_num, loss, predict, label, nilboy):
@@ -189,7 +199,7 @@ class YoloTinyNet(Net):
 
     #calculate iou_predict_truth [CELL_SIZE, CELL_SIZE, BOXES_PER_CELL]
     predict_boxes = predict[:, :, self.num_classes + self.boxes_per_cell:]
-    
+
 
     predict_boxes = tf.reshape(predict_boxes, [self.cell_size, self.cell_size, self.boxes_per_cell, 4])
 
@@ -205,13 +215,13 @@ class YoloTinyNet(Net):
 
     predict_boxes = base_boxes + predict_boxes
 
-    iou_predict_truth = self.iou(predict_boxes, label[0:4])
+    iou_predict_truth = self.iou(predict_boxes, label[:4])
     #calculate C [cell_size, cell_size, boxes_per_cell]
     C = iou_predict_truth * tf.reshape(response, [self.cell_size, self.cell_size, 1])
 
     #calculate I tensor [CELL_SIZE, CELL_SIZE, BOXES_PER_CELL]
     I = iou_predict_truth * tf.reshape(response, (self.cell_size, self.cell_size, 1))
-    
+
     max_I = tf.reduce_max(I, 2, keep_dims=True)
 
     I = tf.cast((I >= max_I), tf.float32) * tf.reshape(response, (self.cell_size, self.cell_size, 1))

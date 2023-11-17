@@ -47,9 +47,7 @@ class YoloSolver(Solver):
     opt = tf.train.MomentumOptimizer(self.learning_rate, self.moment)
     grads = opt.compute_gradients(self.total_loss)
 
-    apply_gradient_op = opt.apply_gradients(grads, global_step=self.global_step)
-
-    return apply_gradient_op
+    return opt.apply_gradients(grads, global_step=self.global_step)
 
   def construct_graph(self):
     # construct graph
@@ -108,5 +106,5 @@ class YoloSolver(Solver):
         summary_str = sess.run(summary_op, feed_dict={self.images: np_images, self.labels: np_labels, self.objects_num: np_objects_num})
         summary_writer.add_summary(summary_str, step)
       if step % 5000 == 0:
-        saver2.save(sess, self.train_dir + '/model.ckpt', global_step=step)
+        saver2.save(sess, f'{self.train_dir}/model.ckpt', global_step=step)
     sess.close()
